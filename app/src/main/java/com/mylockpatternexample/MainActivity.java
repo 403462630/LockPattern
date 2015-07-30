@@ -36,20 +36,25 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
 //                Intent intent = new Intent(LockPatternActivity.ACTION_CREATE_PATTERN, null,
 //                        MainActivity.this, LockPatternActivity.class);
-                Intent intent = new Intent(MainActivity.this, TestLockPatternActivity.class);
-                intent.putExtra(TestLockPatternActivity.EXTRA_LOCK_PATTERN_TYPE, BaseActivity.LockPatternType.CREATE_PATTERN);
+                Intent intent = new Intent(MainActivity.this, LockPatternActivity.class);
+                intent.putExtra(LockPatternActivity.EXTRA_LOCK_PATTERN_TYPE, BaseActivity.LockPatternType.CREATE_PATTERN);
                 startActivityForResult(intent, REQ_CREATE_PATTERN);
             }
         });
         findViewById(R.id.bt_enter_pattern).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent1 = new Intent(MainActivity.this, ForgotPatternActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, REQ_FORGOT_PATTERN2, intent1, PendingIntent.FLAG_UPDATE_CURRENT);
 //                Intent intent = new Intent(LockPatternActivity.ACTION_COMPARE_PATTERN, null,
 //                        MainActivity.this, LockPatternActivity.class);
 //                intent.putExtra(LockPatternActivity.EXTRA_PATTERN, savedPattern);
-                Intent intent = new Intent(MainActivity.this, TestLockPatternActivity.class);
-                intent.putExtra(TestLockPatternActivity.EXTRA_LOCK_PATTERN_TYPE, BaseActivity.LockPatternType.COMPARE_PATTERN);
-                intent.putExtra(TestLockPatternActivity.EXTRA_PATTERN, savedPattern);
+//                intent.putExtra(LockPatternActivity.EXTRA_PENDING_INTENT_OK, pendingIntent);
+                Intent intent = new Intent(MainActivity.this, LockPatternActivity.class);
+                intent.putExtra(LockPatternActivity.EXTRA_LOCK_PATTERN_TYPE, BaseActivity.LockPatternType.COMPARE_PATTERN);
+                intent.putExtra(LockPatternActivity.EXTRA_PATTERN, savedPattern);
+                intent.putExtra(LockPatternActivity.EXTRA_PENDING_INTENT_OK, pendingIntent);
+                intent.putExtra(LockPatternActivity.EXTRA_PENDING_INTENT_FORGOT_PATTERN, pendingIntent);
                 startActivityForResult(intent, REQ_ENTER_PATTERN);
             }
         });
@@ -58,23 +63,23 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
 //                Intent intent = new Intent(LockPatternActivity.ACTION_VERIFY_CAPTCHA, null,
 //                        MainActivity.this, LockPatternActivity.class);
-                Intent intent = new Intent(MainActivity.this, TestLockPatternActivity.class);
-                intent.putExtra(TestLockPatternActivity.EXTRA_LOCK_PATTERN_TYPE, BaseActivity.LockPatternType.VERIFY_CAPTCHA);
+                Intent intent = new Intent(MainActivity.this, LockPatternActivity.class);
+                intent.putExtra(LockPatternActivity.EXTRA_LOCK_PATTERN_TYPE, BaseActivity.LockPatternType.VERIFY_CAPTCHA);
                 startActivityForResult(intent, REQ_VERIFY_CAPTCHA);
             }
         });
-        findViewById(R.id.bt_forgot_pattern).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, ForgotPatternActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, REQ_FORGOT_PATTERN2, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                Intent intentActivity = new Intent(LockPatternActivity.ACTION_COMPARE_PATTERN, null,
-                        MainActivity.this, LockPatternActivity.class);
-                intentActivity.putExtra(LockPatternActivity.EXTRA_PENDING_INTENT_FORGOT_PATTERN,
-                        pendingIntent);
-                startActivityForResult(intentActivity, REQ_FORGOT_PATTERN);
-            }
-        });
+//        findViewById(R.id.bt_forgot_pattern).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(MainActivity.this, ForgotPatternActivity.class);
+//                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, REQ_FORGOT_PATTERN2, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//                Intent intentActivity = new Intent(OldLockPatternActivity.ACTION_COMPARE_PATTERN, null,
+//                        MainActivity.this, OldLockPatternActivity.class);
+//                intentActivity.putExtra(OldLockPatternActivity.EXTRA_PENDING_INTENT_FORGOT_PATTERN,
+//                        pendingIntent);
+//                startActivityForResult(intentActivity, REQ_FORGOT_PATTERN);
+//            }
+//        });
     }
 
 
@@ -84,11 +89,11 @@ public class MainActivity extends ActionBarActivity {
         switch (requestCode) {
             case REQ_CREATE_PATTERN: {
                 if (resultCode == RESULT_OK) {
-                    char[] pattern = data.getCharArrayExtra(TestLockPatternActivity.EXTRA_PATTERN);
+                    char[] pattern = data.getCharArrayExtra(LockPatternActivity.EXTRA_PATTERN);
                     savedPattern = pattern;
                     Toast.makeText(MainActivity.this, pattern.toString(), Toast.LENGTH_SHORT).show();
                 }
-                int retryCount = data.getIntExtra(TestLockPatternActivity.EXTRA_RETRY_COUNT, 0);
+                int retryCount = data.getIntExtra(LockPatternActivity.EXTRA_RETRY_COUNT, 0);
                 Toast.makeText(MainActivity.this, "retryCount: " + retryCount, Toast.LENGTH_SHORT).show();
                 break;
             }// REQ_CREATE_PATTERN
@@ -102,7 +107,7 @@ public class MainActivity extends ActionBarActivity {
                         // The user cancelled the task
                         Toast.makeText(MainActivity.this, "The user cancelled the task", Toast.LENGTH_SHORT).show();
                         break;
-                    case TestLockPatternActivity.RESULT_FAILED:
+                    case LockPatternActivity.RESULT_FAILED:
                         // The user failed to enter the pattern
                         Toast.makeText(MainActivity.this, "The user failed to enter the pattern", Toast.LENGTH_SHORT).show();
                         break;
@@ -111,7 +116,7 @@ public class MainActivity extends ActionBarActivity {
                         Toast.makeText(MainActivity.this, "The user forgot the pattern and invoked your recovery Activity", Toast.LENGTH_SHORT).show();
                         break;
                 }
-                int retryCount = data.getIntExtra(TestLockPatternActivity.EXTRA_RETRY_COUNT, 0);
+                int retryCount = data.getIntExtra(LockPatternActivity.EXTRA_RETRY_COUNT, 0);
                 Toast.makeText(MainActivity.this, "retryCount: " + retryCount, Toast.LENGTH_SHORT).show();
                 break;
             }
@@ -125,12 +130,12 @@ public class MainActivity extends ActionBarActivity {
                         // The user cancelled the task
                         Toast.makeText(MainActivity.this, "The user cancelled the task", Toast.LENGTH_SHORT).show();
                         break;
-                    case TestLockPatternActivity.RESULT_FAILED:
+                    case LockPatternActivity.RESULT_FAILED:
                         // The user failed to enter the pattern
                         Toast.makeText(MainActivity.this, "The user failed to enter the pattern", Toast.LENGTH_SHORT).show();
                         break;
                 }
-                int retryCount = data.getIntExtra(TestLockPatternActivity.EXTRA_RETRY_COUNT, 0);
+                int retryCount = data.getIntExtra(LockPatternActivity.EXTRA_RETRY_COUNT, 0);
                 Toast.makeText(MainActivity.this, "retryCount: " + retryCount, Toast.LENGTH_SHORT).show();
                 break;
             }

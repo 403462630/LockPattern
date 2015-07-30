@@ -5,12 +5,16 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
@@ -40,19 +44,21 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
     private static final String CLASSNAME = BaseActivity.class.getName();
 
     public static final int RESULT_FAILED = Activity.RESULT_FIRST_USER + 1;
+    public static final int RESULT_FORGOT_PATTERN = RESULT_FIRST_USER + 2;
 
     public static final String EXTRA_LOCK_PATTERN_TYPE = CLASSNAME + ".lock_pattern_type";
     public static final String EXTRA_RETRY_COUNT = CLASSNAME + ".retry_count";
     public static final String EXTRA_PENDING_INTENT_OK = CLASSNAME + ".pending_intent_ok";
     public static final String EXTRA_RESULT_RECEIVER = CLASSNAME + ".result_receiver";
     public static final String EXTRA_PENDING_INTENT_CANCELLED = CLASSNAME + ".pending_intent_cancelled";
-
+    public static final String EXTRA_PENDING_INTENT_FORGOT_PATTERN = CLASSNAME + ".pending_intent_forgot_pattern";
     public static final String EXTRA_PATTERN = CLASSNAME + ".pattern";
+
     private static final long DELAY_TIME_TO_RELOAD_LOCK_PATTERN_VIEW = SECOND_IN_MILLIS;
 
     private boolean autoSave, stealthMode;
     private IEncrypter encrypter;
-    private int maxRetries, minWiredDots, retryCount = 0, captchaWiredDots;
+    protected int maxRetries, minWiredDots, retryCount = 0, captchaWiredDots;
 
     private LoadingView<Void, Void, Object> loadingView;
     private LockPatternView lockPatternView;
@@ -79,11 +85,67 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
         CREATE_PATTERN, COMPARE_PATTERN, VERIFY_CAPTCHA
     }
 
+    public static enum ResuleType {
+        COMPARE_OK, COMPARE_FAIL, PATTERN_CREATE, MIN_DOTS_FAIL
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         intentResult = new Intent();
         setResult(Activity.RESULT_CANCELED, intentResult);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        /**
+         * Use this hook instead of onBackPressed(), because onBackPressed() is not available in API 4.
+         */
+        if (keyCode == KeyEvent.KEYCODE_BACK && LockPatternType.COMPARE_PATTERN == lockPatternType) {
+            if (loadingView != null) {
+                loadingView.cancel(true);
+            }
+
+            finishWithNegativeResult(RESULT_CANCELED);
+
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        /**
+         * Support canceling dialog on touching outside in APIs < 11.
+         *
+         * This piece of code is copied from android.view.Window. You can find it by searching for methods
+         * shouldCloseOnTouch() and isOutOfBounds().
+         */
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB && event.getAction() == MotionEvent.ACTION_DOWN
+                && getWindow().peekDecorView() != null) {
+            final int x = (int) event.getX();
+            final int y = (int) event.getY();
+            final int slop = ViewConfiguration.get(this).getScaledWindowTouchSlop();
+            final View decorView = getWindow().getDecorView();
+            boolean isOutOfBounds = (x < -slop) || (y < -slop) || (x > (decorView.getWidth() + slop))
+                    || (y > (decorView.getHeight() + slop));
+            if (isOutOfBounds) {
+                finishWithNegativeResult(RESULT_CANCELED);
+                return true;
+            }
+        }
+
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (loadingView != null) {
+            loadingView.cancel(true);
+        }
+
+        super.onDestroy();
     }
 
     protected final void init(LockPatternView lockPatternView) {
@@ -127,8 +189,7 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
         switch (getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) {
             case Configuration.SCREENLAYOUT_SIZE_LARGE:
             case Configuration.SCREENLAYOUT_SIZE_XLARGE: {
-                final int size = getResources().getDimensionPixelSize(
-                        haibison.android.lockpattern.R.dimen.alp_42447968_lockpatternview_size);
+                final int size = getResources().getDimensionPixelSize(R.dimen.alp_42447968_lockpatternview_size);
                 ViewGroup.LayoutParams lp = lockPatternView.getLayoutParams();
                 lp.width = size;
                 lp.height = size;
@@ -262,8 +323,6 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
         onPatternDetected(lockPatternType);
     }
 
-//    protected void
-
     private void executeLockPatternTask(final List<LockPatternView.Cell> pattern) {
         View view = progressView;
         if (view == null) {
@@ -311,10 +370,14 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
                     case CREATE_PATTERN:
                         if (!hasExtra) {
                             getIntent().putExtra(EXTRA_PATTERN, (char[]) result);
+                            doLockPatternResult(ResuleType.PATTERN_CREATE);
                         } else {
                             if (!(Boolean) result) {
                                 lockPatternView.setDisplayMode(LockPatternView.DisplayMode.Wrong);
                                 lockPatternView.postDelayed(mLockPatternViewReloader, DELAY_TIME_TO_RELOAD_LOCK_PATTERN_VIEW);
+                                doLockPatternResult(ResuleType.COMPARE_FAIL);
+                            } else {
+                                doLockPatternResult(ResuleType.COMPARE_OK);
                             }
                         }
                         break;
@@ -323,13 +386,15 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
                         retryCount++;
                         if (!(Boolean) result) {
                             if (retryCount >= maxRetries) {
-                                finishWithNegativeResult(RESULT_FAILED);
+//                                finishWithNegativeResult(RESULT_FAILED);
                             } else {
                                 lockPatternView.setDisplayMode(LockPatternView.DisplayMode.Wrong);
                                 lockPatternView.postDelayed(mLockPatternViewReloader, DELAY_TIME_TO_RELOAD_LOCK_PATTERN_VIEW);
                             }
+                            doLockPatternResult(ResuleType.COMPARE_FAIL);
                         } else {
-                            finishWithResultOk(null);
+//                            finishWithResultOk(null);
+                            doLockPatternResult(ResuleType.COMPARE_OK);
                         }
                         break;
                 }
@@ -338,13 +403,37 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
         loadingView.execute();
     }
 
+    protected void doLockPatternResult(ResuleType resuleType) {
+        switch (resuleType) {
+            case MIN_DOTS_FAIL:
+                Toast.makeText(this, "至少连接" + minWiredDots + "个点，请重试", Toast.LENGTH_SHORT).show();
+                break;
+            case PATTERN_CREATE:
+                lockPatternView.clearPattern();
+                break;
+            case COMPARE_OK:
+                if (lockPatternType == LockPatternType.CREATE_PATTERN) {
+                    finishWithResultOk(getIntent().getCharArrayExtra(EXTRA_PATTERN));
+                } else {
+                    finishWithResultOk(null);
+                }
+                break;
+            case COMPARE_FAIL:
+                if (lockPatternType == LockPatternType.CREATE_PATTERN) {
+                    // not do something
+                } else {
+                    if (retryCount >= maxRetries) {
+                        finishWithNegativeResult(RESULT_FAILED);
+                    }
+                }
+                break;
+        }
+    }
+
     private void doCheckAndCreatePattern(List<LockPatternView.Cell> pattern) {
         if (pattern.size() < minWiredDots) {
             lockPatternView.setDisplayMode(LockPatternView.DisplayMode.Wrong);
-//            mTextInfo.setText(getResources().getQuantityString(
-//                    R.plurals.alp_42447968_pmsg_connect_x_dots, mMinWiredDots,
-//                    mMinWiredDots));
-            Toast.makeText(this, "至少连接" + minWiredDots + "个点，请重试", Toast.LENGTH_SHORT).show();
+            doLockPatternResult(ResuleType.MIN_DOTS_FAIL);
             lockPatternView.postDelayed(mLockPatternViewReloader, DELAY_TIME_TO_RELOAD_LOCK_PATTERN_VIEW);
             return;
         }
@@ -358,6 +447,9 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
 
     protected final void finishWithResultOk(char[] pattern) {
         if (LockPatternType.CREATE_PATTERN == lockPatternType) {
+            if (autoSave) {
+                AlpSettings.Security.setPattern(this, pattern);
+            }
             intentResult.putExtra(EXTRA_PATTERN, pattern);
         } else {
             intentResult.putExtra(EXTRA_RETRY_COUNT, retryCount);
@@ -424,6 +516,41 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
         if (pi != null) {
             try {
                 pi.send(this, resultCode, intentResult);
+            } catch (Throwable t) {
+                Log.e(CLASSNAME, "Error sending PendingIntent: " + pi, t);
+            }
+        }
+
+        finish();
+    }
+
+    protected final void finishWithForgotPatternResult(int resultCode) {
+        if (LockPatternType.CREATE_PATTERN != lockPatternType) {
+            intentResult.putExtra(EXTRA_RETRY_COUNT, retryCount);
+        }
+
+        setResult(resultCode, intentResult);
+
+        /**
+         * ResultReceiver
+         */
+        ResultReceiver receiver = getIntent().getParcelableExtra(EXTRA_RESULT_RECEIVER);
+        if (receiver != null) {
+            Bundle resultBundle = null;
+            if (LockPatternType.COMPARE_PATTERN == lockPatternType) {
+                resultBundle = new Bundle();
+                resultBundle.putInt(EXTRA_RETRY_COUNT, retryCount);
+            }
+            receiver.send(resultCode, resultBundle);
+        }
+
+        /**
+         * PendingIntent
+         */
+        PendingIntent pi = getIntent().getParcelableExtra(EXTRA_PENDING_INTENT_FORGOT_PATTERN);
+        if (pi != null) {
+            try {
+                pi.send();
             } catch (Throwable t) {
                 Log.e(CLASSNAME, "Error sending PendingIntent: " + pi, t);
             }

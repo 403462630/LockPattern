@@ -1,7 +1,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.mylockpatternexample.TestLockPatternActivity">
+    tools:context="haibison.android.lockpattern.LockPatternActivity">
 
     <TextView
         android:id="@+id/tv_header"
@@ -14,7 +16,10 @@
         android:id="@+id/lock_pattern_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tv_header"/>
+        android:layout_below="@id/tv_header"
+        app:regularColor="#00ff00"
+        app:successColor="#00ff00"
+        app:errorColor="#ff0000"/>
 
     <LinearLayout
         android:id="@+id/ll_button_container"

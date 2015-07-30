@@ -593,9 +593,11 @@ public class LockPatternView extends View {
      * Reset all pattern state.
      */
     private void resetPattern() {
+
         mPattern.clear();
         clearPatternDrawLookup();
         mPatternDisplayMode = DisplayMode.Correct;
+
         invalidate();
     }
 

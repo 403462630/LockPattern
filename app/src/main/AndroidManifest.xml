@@ -17,7 +17,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="haibison.android.lockpattern.LockPatternActivity"
+            android:name="haibison.android.lockpattern.OldLockPatternActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout"
             android:screenOrientation="user" />
         <activity
@@ -25,8 +25,8 @@
             android:label="@string/title_activity_forgot_pattern" >
         </activity>
         <activity
-            android:name=".TestLockPatternActivity"
-            android:label="@string/title_activity_test_lock_pattern" >
+            android:name="haibison.android.lockpattern.LockPatternActivity"
+            android:label="@string/title_activity_test_lock_pattern">
         </activity>
     </application>
 
