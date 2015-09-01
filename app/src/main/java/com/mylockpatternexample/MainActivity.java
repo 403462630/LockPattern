@@ -31,6 +31,7 @@ public class MainActivity extends ActionBarActivity {
         AlpSettings.Display.setStealthMode(this, false);
         AlpSettings.Display.setMinWiredDots(this, 3);
         AlpSettings.Display.setCaptchaWiredDots(this, 6);
+        AlpSettings.Security.setAutoSavePattern(this, true);
         findViewById(R.id.bt_new_pattern).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,7 +53,7 @@ public class MainActivity extends ActionBarActivity {
 //                intent.putExtra(LockPatternActivity.EXTRA_PENDING_INTENT_OK, pendingIntent);
                 Intent intent = new Intent(MainActivity.this, LockPatternActivity.class);
                 intent.putExtra(LockPatternActivity.EXTRA_LOCK_PATTERN_TYPE, BaseActivity.LockPatternType.COMPARE_PATTERN);
-                intent.putExtra(LockPatternActivity.EXTRA_PATTERN, savedPattern);
+//                intent.putExtra(LockPatternActivity.EXTRA_PATTERN, savedPattern);
                 intent.putExtra(LockPatternActivity.EXTRA_PENDING_INTENT_OK, pendingIntent);
                 intent.putExtra(LockPatternActivity.EXTRA_PENDING_INTENT_FORGOT_PATTERN, pendingIntent);
                 startActivityForResult(intent, REQ_ENTER_PATTERN);
@@ -68,18 +69,16 @@ public class MainActivity extends ActionBarActivity {
                 startActivityForResult(intent, REQ_VERIFY_CAPTCHA);
             }
         });
-//        findViewById(R.id.bt_forgot_pattern).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(MainActivity.this, ForgotPatternActivity.class);
-//                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, REQ_FORGOT_PATTERN2, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//                Intent intentActivity = new Intent(OldLockPatternActivity.ACTION_COMPARE_PATTERN, null,
-//                        MainActivity.this, OldLockPatternActivity.class);
-//                intentActivity.putExtra(OldLockPatternActivity.EXTRA_PENDING_INTENT_FORGOT_PATTERN,
-//                        pendingIntent);
-//                startActivityForResult(intentActivity, REQ_FORGOT_PATTERN);
-//            }
-//        });
+        findViewById(R.id.bt_modify_pattern).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, LockPatternActivity.class);
+                intent.putExtra(LockPatternActivity.EXTRA_LOCK_PATTERN_TYPE, BaseActivity.LockPatternType.COMPARE_PATTERN);
+//                intent.putExtra(LockPatternActivity.EXTRA_PATTERN, savedPattern);
+                intent.putExtra(LockPatternActivity.EXTRA_IS_MODIFY, true);
+                startActivityForResult(intent, REQ_ENTER_PATTERN);
+            }
+        });
     }
 
 

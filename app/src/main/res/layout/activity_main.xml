@@ -26,9 +26,9 @@
         android:text="VERIFY CAPTCHA"/>
 
     <Button
-        android:id="@+id/bt_forgot_pattern"
+        android:id="@+id/bt_modify_pattern"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="FORGOT PATTERN"/>
+        android:text="MODIFY PATTERN"/>
 
 </LinearLayout>

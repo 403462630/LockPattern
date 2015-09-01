@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-    android:id="@+id/alp_42447968_view_group_progress_bar"
+    android:id="@+id/rl_progress_bar_container"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/alp_42447968_view_group_progress_bar_background"
+    android:background="#cc515151"
     android:visibility="gone"
     tools:ignore="UselessParent">
 
@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:gravity="center"
-            android:text="@string/alp_42447968_loading"/>
+            android:text=""/>
     </LinearLayout>
 
 </RelativeLayout>

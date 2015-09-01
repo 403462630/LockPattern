@@ -5,8 +5,6 @@ import android.content.res.Configuration;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.ViewGroup;
 
 import java.util.List;
@@ -61,7 +59,7 @@ public class ForgotPatternActivity extends ActionBarActivity implements OnPatter
             case Configuration.SCREENLAYOUT_SIZE_LARGE:
             case Configuration.SCREENLAYOUT_SIZE_XLARGE: {
                 final int size = getResources().getDimensionPixelSize(
-                        haibison.android.lockpattern.R.dimen.alp_42447968_lockpatternview_size);
+                        haibison.android.lockpattern.R.dimen.lock_pattern_view_size);
                 ViewGroup.LayoutParams lp = lockPatternView.getLayoutParams();
                 lp.width = size;
                 lp.height = size;

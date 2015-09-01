@@ -8,54 +8,71 @@
     <TextView
         android:id="@+id/tv_header"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_below="@+id/rl_title_container"
+        android:textSize="17sp"
         android:text="head"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:textColor="#5f5f5f"
+        android:layout_above="@+id/lock_pattern_view"
         android:gravity="center"/>
 
     <haibison.android.lockpattern.widget.LockPatternView
         android:id="@+id/lock_pattern_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tv_header"
-        app:regularColor="#00ff00"
-        app:successColor="#00ff00"
-        app:errorColor="#ff0000"/>
+        android:layout_centerInParent="true"/>
 
     <LinearLayout
         android:id="@+id/ll_button_container"
-        android:layout_below="@id/lock_pattern_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center">
 
-        <Button
-            android:id="@+id/bt_cancel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="取消"/>
+        <TextView
+            android:id="@+id/tv_redraw"
+            android:layout_width="150dp"
+            android:layout_height="45dp"
+            android:background="@drawable/bg_lock_pattern_button_shape"
+            android:textSize="17sp"
+            android:gravity="center"
+            android:textColor="#01c7cc"
+            android:text="重绘"/>
 
-        <Button
-            android:id="@+id/bt_next"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="下一步"/>
+        <!--<Button-->
+            <!--android:id="@+id/bt_next"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="下一步"/>-->
 
-        <Button
-            android:id="@+id/bt_bt_confirm"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+        <TextView
+            android:id="@+id/tv_confirm"
+            android:layout_width="150dp"
+            android:layout_height="45dp"
+            android:background="@drawable/bg_lock_pattern_button_cyan_shape"
+            android:textSize="17sp"
+            android:layout_marginLeft="20dp"
+            android:visibility="gone"
+            android:gravity="center"
+            android:textColor="#ffffff"
             android:text="确定"/>
 
-        <Button
-            android:id="@+id/bt_forget"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="忘记密码"/>
+        <TextView
+            android:id="@+id/tv_exit"
+            android:layout_width="150dp"
+            android:layout_height="45dp"
+            android:background="@drawable/bg_lock_pattern_button_cyan_shape"
+            android:textSize="17sp"
+            android:gravity="center"
+            android:textColor="#ffffff"
+            android:visibility="gone"
+            android:text="退出"/>
     </LinearLayout>
 
+    <include layout="@layout/lock_pattern_progress_bar"/>
 </RelativeLayout>

@@ -18,7 +18,6 @@ package haibison.android.lockpattern.widget;
 
 import haibison.android.lockpattern.R;
 import haibison.android.lockpattern.util.FloatAnimator;
-import haibison.android.lockpattern.util.ResourceUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -172,7 +171,7 @@ public class LockPatternView extends View {
             dest.writeInt(row);
         }// writeToParcel()
 
-        public static final Parcelable.Creator<Cell> CREATOR = new Parcelable.Creator<Cell>() {
+        public static final Creator<Cell> CREATOR = new Creator<Cell>() {
 
             public Cell createFromParcel(Parcel in) {
                 return new Cell(in);
@@ -322,8 +321,8 @@ public class LockPatternView extends View {
     private float mSquareWidth;
     private float mSquareHeight;
 
-    private Bitmap mBitmapCircleGreen;
-    private Bitmap mBitmapCircleRed;
+    private Bitmap mCircle;
+    private Bitmap mDot;
 
     private final Path mCurrentPath = new Path();
     private final Rect mInvalidate = new Rect();
@@ -333,6 +332,8 @@ public class LockPatternView extends View {
     private int mRegularColor;
     private int mErrorColor;
     private int mSuccessColor;
+    private int mPathColor;
+    private int mPathAlpha = 50;
 
     private Interpolator mFastOutSlowInInterpolator;
     private Interpolator mLinearOutSlowInInterpolator;
@@ -374,50 +375,41 @@ public class LockPatternView extends View {
 
         setClickable(true);
 
-        mBitmapCircleGreen = BitmapFactory.decodeResource(getResources(), R.drawable.alp_indicator_code_lock_point_area_green_holo);
-        mBitmapCircleRed = BitmapFactory.decodeResource(getResources(), R.drawable.alp_indicator_code_lock_point_area_red_holo);
+        mCircle = BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_pattern_circle);
+        mDot = BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_pattern_dot);
 
         mPathPaint.setAntiAlias(true);
         mPathPaint.setDither(true);
 
-//        mRegularColor = getResources().getColor(
-//                ResourceUtils.resolveAttribute(getContext(),
-//                        R.attr.alp_42447968_color_lock_pattern_view_regular));
-//        mErrorColor = getResources().getColor(
-//                ResourceUtils.resolveAttribute(getContext(),
-//                        R.attr.alp_42447968_color_lock_pattern_view_error));
-//        mSuccessColor = getResources().getColor(
-//                ResourceUtils.resolveAttribute(getContext(),
-//                        R.attr.alp_42447968_color_lock_pattern_view_success));
-
-
         mRegularColor = a.getColor(
                 R.styleable.Alp_42447968_LockPatternView_regularColor,
-                Color.parseColor("#ff009688"));
+                Color.parseColor("#ff01c7cc"));
         mErrorColor = a.getColor(
                 R.styleable.Alp_42447968_LockPatternView_errorColor,
-                Color.parseColor("#fff4511e"));
+                Color.parseColor("#ffff4f4f"));
         mSuccessColor = a.getColor(
                 R.styleable.Alp_42447968_LockPatternView_successColor,
-                Color.parseColor("#ff009688"));
-
-        int pathColor = a.getColor(
-                R.styleable.Alp_42447968_LockPatternView_pathColor,
-                mRegularColor);
-        mPathPaint.setColor(pathColor);
+                Color.parseColor("#ff01c7cc"));
+        mPathColor = a.getColor(
+                R.styleable.Alp_42447968_LockPatternView_regularColor,
+                Color.parseColor("#ff01c7cc"));
+//        int pathColor = a.getColor(
+//                R.styleable.Alp_42447968_LockPatternView_pathColor,
+//                mPathColor);
+        mPathPaint.setColor(mPathColor);
 
         mPathPaint.setStyle(Paint.Style.STROKE);
         mPathPaint.setStrokeJoin(Paint.Join.ROUND);
         mPathPaint.setStrokeCap(Paint.Cap.ROUND);
+        mPathPaint.setAlpha(mPathAlpha);
 
-        mPathWidth = getResources().getDimensionPixelSize(
-                R.dimen.alp_42447968_lock_pattern_dot_line_width);
+        mPathWidth = getResources().getDimensionPixelSize(R.dimen.lock_pattern_dot_line_width);
         mPathPaint.setStrokeWidth(mPathWidth);
 
         mDotSize = getResources().getDimensionPixelSize(
-                R.dimen.alp_42447968_lock_pattern_dot_size);
+                R.dimen.lock_pattern_dot_size);
         mDotSizeActivated = getResources().getDimensionPixelSize(
-                R.dimen.alp_42447968_lock_pattern_dot_size_activated);
+                R.dimen.lock_pattern_dot_size_activated);
 
         mPaint.setAntiAlias(true);
         mPaint.setDither(true);
@@ -629,10 +621,10 @@ public class LockPatternView extends View {
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        final int width = w - getPaddingLeft() - getPaddingRight();
+        final int width = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
         mSquareWidth = width / (float) MATRIX_WIDTH;
 
-        final int height = h - getPaddingTop() - getPaddingBottom();
+        final int height = getMeasuredWidth() - getPaddingTop() - getPaddingBottom();
         mSquareHeight = height / (float) MATRIX_WIDTH;
     }
 
@@ -741,15 +733,15 @@ public class LockPatternView extends View {
 
     private void startCellActivatedAnimation(Cell cell) {
         final CellState cellState = mCellStates[cell.row][cell.column];
-        startSizeAnimation(mDotSize, mDotSizeActivated, 96,
-                mLinearOutSlowInInterpolator, cellState, new Runnable() {
-
-                    @Override
-                    public void run() {
-                        startSizeAnimation(mDotSizeActivated, mDotSize, 192,
-                                mFastOutSlowInInterpolator, cellState, null);
-                    }
-                });
+//        startSizeAnimation(mDotSize, mDotSizeActivated, 96,
+//                mLinearOutSlowInInterpolator, cellState, new Runnable() {
+//
+//                    @Override
+//                    public void run() {
+//                        startSizeAnimation(mDotSizeActivated, mDotSize, 192,
+//                                mFastOutSlowInInterpolator, cellState, null);
+//                    }
+//                });
         startLineEndAnimation(cellState, mInProgressX, mInProgressY,
                 getCenterXForColumn(cell.column), getCenterYForRow(cell.row));
     }
@@ -1194,7 +1186,7 @@ public class LockPatternView extends View {
 
         if (drawPath) {
             mPathPaint.setColor(getCurrentColor(true /* partOfPattern */));
-
+            mPathPaint.setAlpha(mPathAlpha);
             boolean anyCircles = false;
             float lastX = 0f;
             float lastY = 0f;
@@ -1234,8 +1226,8 @@ public class LockPatternView extends View {
                 currentPath.moveTo(lastX, lastY);
                 currentPath.lineTo(mInProgressX, mInProgressY);
 
-                mPathPaint.setAlpha((int) (calculateLastSegmentAlpha(
-                        mInProgressX, mInProgressY, lastX, lastY) * 255f));
+//                mPathPaint.setAlpha((int) (calculateLastSegmentAlpha(
+//                        mInProgressX, mInProgressY, lastX, lastY) * 255f));
                 canvas.drawPath(currentPath, mPathPaint);
             }
         }
@@ -1266,33 +1258,35 @@ public class LockPatternView extends View {
         }
     }
 
-    private Bitmap getCurrentBitmap(boolean partOfPattern) {
-        if (!partOfPattern || mInStealthMode) {
-            // unselected circle
-            return null;
-        } else if (mPatternDisplayMode == DisplayMode.Wrong) {
-            // the pattern is wrong
-            return mBitmapCircleRed;
-        } else if (mPatternDisplayMode == DisplayMode.Correct
-                || mPatternDisplayMode == DisplayMode.Animate || mPatternInProgress) {
-            return mBitmapCircleGreen;
-        } else {
-            throw new IllegalStateException("unknown display mode "
-                    + mPatternDisplayMode);
-        }
-    }
-
     /**
      * @param partOfPattern
      *            Whether this circle is part of the pattern.
      */
     private void drawCircle(Canvas canvas, float centerX, float centerY,
             float size, boolean partOfPattern, float alpha) {
-        mPaint.setColor(getCurrentColor(partOfPattern));
-        mPaint.setAlpha((int) (alpha * 255));
-        canvas.drawCircle(centerX, centerY, size / 2, mPaint);
+        Bitmap outBitmap = null;
+        Bitmap innerBitmap = null;
+        if (!partOfPattern || mInStealthMode) {
+            // unselected circle
+            outBitmap = mCircle;
+            innerBitmap = null;
+        } else if (mPatternDisplayMode == DisplayMode.Wrong) {
+            // the pattern is wrong
+            outBitmap = mCircle;
+            innerBitmap = mDot;
+        } else if (mPatternDisplayMode == DisplayMode.Correct
+                || mPatternDisplayMode == DisplayMode.Animate || mPatternInProgress) {
+            outBitmap = mCircle;
+            innerBitmap = mDot;
+        } else {
+            throw new IllegalStateException("unknown display mode "
+                    + mPatternDisplayMode);
+        }
+        drawBitmap(canvas, outBitmap, centerX, centerY);
+        drawBitmap(canvas, innerBitmap, centerX, centerY);
+    }
 
-        Bitmap bitmap = getCurrentBitmap(partOfPattern);
+    private void drawBitmap(Canvas canvas, Bitmap bitmap, float centerX, float centerY) {
         if (bitmap != null) {
             Paint paint = new Paint();
             int width = bitmap.getWidth();
@@ -1390,7 +1384,7 @@ public class LockPatternView extends View {
         }
 
         @SuppressWarnings("unused")
-        public static final Parcelable.Creator<SavedState> CREATOR = new Creator<SavedState>() {
+        public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
 
             public SavedState createFromParcel(Parcel in) {
                 return new SavedState(in);

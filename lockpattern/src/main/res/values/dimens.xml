@@ -17,10 +17,9 @@
 
 <resources>
 
-    <dimen name="alp_42447968_lockpatternview_size">350dp</dimen>
-    <dimen name="alp_42447968_separator_size">1dp</dimen>
-    <dimen name="alp_42447968_lock_pattern_dot_line_width">3dp</dimen>
-    <dimen name="alp_42447968_lock_pattern_dot_size">12dp</dimen>
-    <dimen name="alp_42447968_lock_pattern_dot_size_activated">28dp</dimen>
+    <dimen name="lock_pattern_view_size">350dp</dimen>
+    <dimen name="lock_pattern_dot_line_width">24dp</dimen>
+    <dimen name="lock_pattern_dot_size">24dp</dimen>
+    <dimen name="lock_pattern_dot_size_activated">30dp</dimen>
 
 </resources>

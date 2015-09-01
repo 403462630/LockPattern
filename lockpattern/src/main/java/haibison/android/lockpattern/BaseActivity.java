@@ -2,7 +2,9 @@ package haibison.android.lockpattern;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -16,6 +18,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.widget.Space;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -46,6 +49,7 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
     public static final int RESULT_FAILED = Activity.RESULT_FIRST_USER + 1;
     public static final int RESULT_FORGOT_PATTERN = RESULT_FIRST_USER + 2;
 
+    public static final String EXTRA_IS_MODIFY = "is_modify";
     public static final String EXTRA_LOCK_PATTERN_TYPE = CLASSNAME + ".lock_pattern_type";
     public static final String EXTRA_RETRY_COUNT = CLASSNAME + ".retry_count";
     public static final String EXTRA_PENDING_INTENT_OK = CLASSNAME + ".pending_intent_ok";
@@ -65,6 +69,12 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
     private View progressView;
     private Intent intentResult;
 
+    public boolean isModify() {
+        return isModify;
+    }
+
+    private boolean isModify = false;
+
     private final Runnable mLockPatternViewReloader = new Runnable() {
 
         @Override
@@ -77,6 +87,20 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
 
     public LockPatternType getLockPatternType() {
         return lockPatternType;
+    }
+
+    public void setLockPatternType(LockPatternType lockPatternType) {
+        this.lockPatternType = lockPatternType;
+        if (lockPatternType == LockPatternType.VERIFY_CAPTCHA) {
+            final ArrayList<LockPatternView.Cell> pattern;
+            if (getIntent().hasExtra(EXTRA_PATTERN)) {
+                pattern = getIntent().getParcelableArrayListExtra(EXTRA_PATTERN);
+            } else {
+                getIntent().putParcelableArrayListExtra(EXTRA_PATTERN, pattern = LockPatternUtils.genCaptchaPattern(captchaWiredDots));
+            }
+
+            lockPatternView.setPattern(LockPatternView.DisplayMode.Animate, pattern);
+        }
     }
 
     private LockPatternType lockPatternType;
@@ -93,6 +117,13 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         intentResult = new Intent();
+
+        Intent intent = getIntent();
+        if (intent.hasExtra(EXTRA_IS_MODIFY)) {
+            isModify = intent.getBooleanExtra(EXTRA_IS_MODIFY, false);
+            intent.putExtra(EXTRA_LOCK_PATTERN_TYPE, LockPatternType.COMPARE_PATTERN);
+        }
+
         setResult(Activity.RESULT_CANCELED, intentResult);
     }
 
@@ -189,7 +220,7 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
         switch (getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) {
             case Configuration.SCREENLAYOUT_SIZE_LARGE:
             case Configuration.SCREENLAYOUT_SIZE_XLARGE: {
-                final int size = getResources().getDimensionPixelSize(R.dimen.alp_42447968_lockpatternview_size);
+                final int size = getResources().getDimensionPixelSize(R.dimen.lock_pattern_view_size);
                 ViewGroup.LayoutParams lp = lockPatternView.getLayoutParams();
                 lp.width = size;
                 lp.height = size;
@@ -326,7 +357,7 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
     private void executeLockPatternTask(final List<LockPatternView.Cell> pattern) {
         View view = progressView;
         if (view == null) {
-            view = new android.support.v4.widget.Space(this);
+            view = new Space(this);
         }
 
         final boolean hasExtra = getIntent().hasExtra(EXTRA_PATTERN);
@@ -471,6 +502,8 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
                  */
                 bundle.putInt(EXTRA_RETRY_COUNT, retryCount);
             }
+            bundle.putSerializable(EXTRA_LOCK_PATTERN_TYPE, lockPatternType);
+            bundle.putBoolean(EXTRA_IS_MODIFY, isModify());
             receiver.send(Activity.RESULT_OK, bundle);
         }
 
@@ -501,11 +534,12 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
          */
         ResultReceiver receiver = getIntent().getParcelableExtra(EXTRA_RESULT_RECEIVER);
         if (receiver != null) {
-            Bundle resultBundle = null;
+            Bundle resultBundle = new Bundle();
             if (LockPatternType.COMPARE_PATTERN == lockPatternType) {
-                resultBundle = new Bundle();
                 resultBundle.putInt(EXTRA_RETRY_COUNT, retryCount);
             }
+            resultBundle.putSerializable(EXTRA_LOCK_PATTERN_TYPE, lockPatternType);
+            resultBundle.putBoolean(EXTRA_IS_MODIFY, isModify());
             receiver.send(resultCode, resultBundle);
         }
 
@@ -536,11 +570,12 @@ public class BaseActivity extends ActionBarActivity implements OnPatternListener
          */
         ResultReceiver receiver = getIntent().getParcelableExtra(EXTRA_RESULT_RECEIVER);
         if (receiver != null) {
-            Bundle resultBundle = null;
+            Bundle resultBundle = new Bundle();
             if (LockPatternType.COMPARE_PATTERN == lockPatternType) {
-                resultBundle = new Bundle();
                 resultBundle.putInt(EXTRA_RETRY_COUNT, retryCount);
             }
+            resultBundle.putSerializable(EXTRA_LOCK_PATTERN_TYPE, lockPatternType);
+            resultBundle.putBoolean(EXTRA_IS_MODIFY, isModify());
             receiver.send(resultCode, resultBundle);
         }
 
